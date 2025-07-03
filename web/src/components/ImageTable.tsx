@@ -46,15 +46,11 @@ export function ImageTable({ initialData }: ImageTableProps) {
     }
   }, [])
 
-  // Polling effect to fetch images every 3 seconds
   useEffect(() => {
-    // Initial fetch on mount
     fetchImages()
 
-    // Set up polling
-    const intervalId = setInterval(fetchImages, 3000) // Every 3 seconds
+    const intervalId = setInterval(fetchImages, 30000)
 
-    // Cleanup interval on unmount
     return () => clearInterval(intervalId)
   }, [fetchImages])
 

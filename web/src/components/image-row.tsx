@@ -20,6 +20,7 @@ interface ImageRowProps {
   image: {
     id?: number
     imagePath: string
+    createdAt?: string 
     customId?: string | null
     l1: number
     l2: number
@@ -40,6 +41,7 @@ export function ImageRow({ image, onUpdate, onDelete }: ImageRowProps) {
   const [hasChanges, setHasChanges] = useState(false)
   const [isImageModalOpen, setIsImageModalOpen] = useState(false)
   const [currentImage, setCurrentImage] = useState(image)
+  console.log("image", image)
 
   const handleInputChange = (value: string) => {
     setCustomId(value)
@@ -285,6 +287,14 @@ export function ImageRow({ image, onUpdate, onDelete }: ImageRowProps) {
                         <span className="text-sm">ID Personnalisé:</span>
                         <span className="text-sm font-mono">{currentImage.customId || "Non défini"}</span>
                       </div>
+                 <div className="flex justify-between">
+  <span className="text-sm">Date Creation:</span>
+  <span className="text-sm font-mono">
+    {currentImage.createdAt
+      ? new Date(currentImage.createdAt).toLocaleString()
+      : "N/A"}
+  </span>
+</div>
                     </div>
                   </div>
 
