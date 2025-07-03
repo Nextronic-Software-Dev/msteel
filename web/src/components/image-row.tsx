@@ -113,14 +113,24 @@ export function ImageRow({ image, onUpdate, onDelete }: ImageRowProps) {
   const formatNumber = (num: number): string => {
     return num.toFixed(2)
   }
-
+ const getImageUrl = (imagePath: string): string => {
+    // Extraire le nom du fichier depuis le path
+    const filename = imagePath.split("/").pop()
+    return `/api/img/${filename}`
+  }
   return (
     <TableRow className="hover:bg-muted/50 transition-colors">
       <TableCell>
         <div className="flex items-center space-x-3">
           <div className="relative w-12 h-12 rounded-md overflow-hidden border bg-muted">
-            <Image src={currentImage.imagePath || "/placeholder.svg"} alt="Image" fill className="object-cover" />
-          </div>
+  <img
+          src={getImageUrl(currentImage.imagePath) || "/placeholder.svg?height=48&width=48"}
+          alt="Image"
+          className="w-full h-full object-cover"
+          onError={(e) => {
+            e.currentTarget.src = "/placeholder.svg?height=48&width=48"
+          }}
+        />          </div>
           <div className="min-w-0 flex-1">
             <p className="font-medium text-sm truncate">{currentImage.imagePath.split("/").pop()}</p>
             <p className="text-xs text-muted-foreground">ID: {currentImage.id || "N/A"}</p>
@@ -246,13 +256,14 @@ export function ImageRow({ image, onUpdate, onDelete }: ImageRowProps) {
               <div className="space-y-4">
                 {/* Image principale */}
                 <div className="relative w-full h-96 bg-muted rounded-lg overflow-hidden">
-                  <Image
-                    src={currentImage.imagePath || "/placeholder.svg"}
-                    alt={`Image ${currentImage.imagePath.split("/").pop()}`}
-                    fill
-                    className="object-contain"
-                    priority
-                  />
+                   <img
+          src={getImageUrl(currentImage.imagePath) || "/placeholder.svg?height=48&width=48"}
+          alt="Image"
+          className="w-full h-full object-cover"
+          onError={(e) => {
+            e.currentTarget.src = "/placeholder.svg?height=48&width=48"
+          }}
+        />
                 </div>
 
                 {/* Informations détaillées */}

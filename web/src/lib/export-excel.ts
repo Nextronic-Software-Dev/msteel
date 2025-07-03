@@ -174,7 +174,6 @@ export function exportFilteredToExcel(
 ) {
   let filteredImages = [...images]
 
-  // Appliquer les filtres
   if (filters.hasCustomId !== undefined) {
     filteredImages = filteredImages.filter((img) => (filters.hasCustomId ? !!img.customId : !img.customId))
   }

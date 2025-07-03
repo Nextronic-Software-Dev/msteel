@@ -97,14 +97,14 @@ export function ImageTable({ initialData }: ImageTableProps) {
             <TableHeader>
               <TableRow className="bg-muted/50">
                 <TableHead className="min-w-[200px]">Image & Nom</TableHead>
-                <TableHead className="text-center min-w-[80px]">L1</TableHead>
-                <TableHead className="text-center min-w-[80px]">L2</TableHead>
-                <TableHead className="text-center min-w-[80px]">L3</TableHead>
-                <TableHead className="text-center min-w-[80px]">L4</TableHead>
-                <TableHead className="text-center min-w-[80px]">L5</TableHead>
                 <TableHead className="text-center min-w-[80px]">W1</TableHead>
                 <TableHead className="text-center min-w-[80px]">W2</TableHead>
                 <TableHead className="text-center min-w-[80px]">W3</TableHead>
+                <TableHead className="text-center min-w-[80px]">W4</TableHead>
+                <TableHead className="text-center min-w-[80px]">W5</TableHead>
+                <TableHead className="text-center min-w-[80px]">L1</TableHead>
+                <TableHead className="text-center min-w-[80px]">L2</TableHead>
+                <TableHead className="text-center min-w-[80px]">L3</TableHead>
                 <TableHead className="text-center min-w-[120px]">Statut</TableHead>
                 <TableHead className="min-w-[200px]">ID Personnalisé</TableHead>
                 <TableHead className="text-right min-w-[120px]">Actions</TableHead>
