@@ -10,8 +10,11 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Eye, Save, Loader2, Check } from "lucide-react"
 import { toast } from "sonner"
-import { updateCustomId } from "@/lib/action"
+import { updateCustomId, deleteImage, updateImageDimensions } from "@/lib/action"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { EditableDimension } from "./editable-dimension"
+import { DeleteConfirmationDialog } from "./delete-confirmation-dialog"
+
 
 interface ImageRowProps {
   image: {
@@ -27,13 +30,16 @@ interface ImageRowProps {
     w2: number
     w3: number
   }
+  onUpdate?: (updatedImage: any) => void
+  onDelete?: (imageId: number) => void
 }
 
-export function ImageRow({ image }: ImageRowProps) {
+export function ImageRow({ image, onUpdate, onDelete }: ImageRowProps) {
   const [customId, setCustomId] = useState(image.customId || "")
   const [isLoading, setIsLoading] = useState(false)
   const [hasChanges, setHasChanges] = useState(false)
   const [isImageModalOpen, setIsImageModalOpen] = useState(false)
+  const [currentImage, setCurrentImage] = useState(image)
 
   const handleInputChange = (value: string) => {
     setCustomId(value)
@@ -52,7 +58,13 @@ export function ImageRow({ image }: ImageRowProps) {
       if (result.success) {
         toast.success("ID personnalisé mis à jour avec succès")
         setHasChanges(false)
+        const updatedImage = { ...currentImage, customId }
+        setCurrentImage(updatedImage)
         image.customId = customId
+
+        if (onUpdate) {
+          onUpdate(updatedImage)
+        }
       } else {
         toast.error(result.error || "Erreur lors de la mise à jour")
       }
@@ -60,6 +72,41 @@ export function ImageRow({ image }: ImageRowProps) {
       toast.error("Erreur lors de la mise à jour")
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleDimensionUpdate = async (field: string, newValue: number): Promise<boolean> => {
+    if (!currentImage.id) return false
+
+    try {
+      const result = await updateImageDimensions(currentImage.id, { [field]: newValue })
+      if (result.success) {
+        const updatedImage = { ...currentImage, [field]: newValue }
+        setCurrentImage(updatedImage)
+
+        if (onUpdate) {
+          onUpdate(updatedImage)
+        }
+        return true
+      }
+      return false
+    } catch (error) {
+      return false
+    }
+  }
+
+  const handleDelete = async (): Promise<boolean> => {
+    if (!currentImage.id) return false
+
+    try {
+      const result = await deleteImage(currentImage.id)
+      if (result.success && onDelete) {
+        onDelete(currentImage.id)
+        return true
+      }
+      return false
+    } catch (error) {
+      return false
     }
   }
 
@@ -72,61 +119,86 @@ export function ImageRow({ image }: ImageRowProps) {
       <TableCell>
         <div className="flex items-center space-x-3">
           <div className="relative w-12 h-12 rounded-md overflow-hidden border bg-muted">
-            <Image src={image.imagePath || "/placeholder.svg"} alt="Image" fill className="object-cover" />
+            <Image src={currentImage.imagePath || "/placeholder.svg"} alt="Image" fill className="object-cover" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="font-medium text-sm truncate">{image.imagePath.split("/").pop()}</p>
+            <p className="font-medium text-sm truncate">{currentImage.imagePath.split("/").pop()}</p>
+            <p className="text-xs text-muted-foreground">ID: {currentImage.id || "N/A"}</p>
           </div>
         </div>
       </TableCell>
 
-      {/* Colonnes L1-L5 */}
+      {/* Colonnes L1-L5 éditables */}
       <TableCell className="text-center">
-        <span className="font-mono text-sm bg-blue-50 dark:bg-blue-950 px-2 py-1 rounded">
-          {formatNumber(image.l1)}
-        </span>
+        <EditableDimension
+          value={currentImage.l1}
+          onSave={(newValue) => handleDimensionUpdate("l1", newValue)}
+          label="L1"
+          color="blue"
+        />
       </TableCell>
       <TableCell className="text-center">
-        <span className="font-mono text-sm bg-blue-50 dark:bg-blue-950 px-2 py-1 rounded">
-          {formatNumber(image.l2)}
-        </span>
+        <EditableDimension
+          value={currentImage.l2}
+          onSave={(newValue) => handleDimensionUpdate("l2", newValue)}
+          label="L2"
+          color="blue"
+        />
       </TableCell>
       <TableCell className="text-center">
-        <span className="font-mono text-sm bg-blue-50 dark:bg-blue-950 px-2 py-1 rounded">
-          {formatNumber(image.l3)}
-        </span>
+        <EditableDimension
+          value={currentImage.l3}
+          onSave={(newValue) => handleDimensionUpdate("l3", newValue)}
+          label="L3"
+          color="blue"
+        />
       </TableCell>
       <TableCell className="text-center">
-        <span className="font-mono text-sm bg-blue-50 dark:bg-blue-950 px-2 py-1 rounded">
-          {formatNumber(image.l4)}
-        </span>
+        <EditableDimension
+          value={currentImage.l4}
+          onSave={(newValue) => handleDimensionUpdate("l4", newValue)}
+          label="L4"
+          color="blue"
+        />
       </TableCell>
       <TableCell className="text-center">
-        <span className="font-mono text-sm bg-blue-50 dark:bg-blue-950 px-2 py-1 rounded">
-          {formatNumber(image.l5)}
-        </span>
-      </TableCell>
-
-      {/* Colonnes W1-W3 */}
-      <TableCell className="text-center">
-        <span className="font-mono text-sm bg-green-50 dark:bg-green-950 px-2 py-1 rounded">
-          {formatNumber(image.w1)}
-        </span>
-      </TableCell>
-      <TableCell className="text-center">
-        <span className="font-mono text-sm bg-green-50 dark:bg-green-950 px-2 py-1 rounded">
-          {formatNumber(image.w2)}
-        </span>
-      </TableCell>
-      <TableCell className="text-center">
-        <span className="font-mono text-sm bg-green-50 dark:bg-green-950 px-2 py-1 rounded">
-          {formatNumber(image.w3)}
-        </span>
+        <EditableDimension
+          value={currentImage.l5}
+          onSave={(newValue) => handleDimensionUpdate("l5", newValue)}
+          label="L5"
+          color="blue"
+        />
       </TableCell>
 
+      {/* Colonnes W1-W3 éditables */}
       <TableCell className="text-center">
-        <Badge variant={image.customId ? "default" : "outline"} className="text-xs">
-          {image.customId ? "ID Assigné" : "Nouveau"}
+        <EditableDimension
+          value={currentImage.w1}
+          onSave={(newValue) => handleDimensionUpdate("w1", newValue)}
+          label="W1"
+          color="green"
+        />
+      </TableCell>
+      <TableCell className="text-center">
+        <EditableDimension
+          value={currentImage.w2}
+          onSave={(newValue) => handleDimensionUpdate("w2", newValue)}
+          label="W2"
+          color="green"
+        />
+      </TableCell>
+      <TableCell className="text-center">
+        <EditableDimension
+          value={currentImage.w3}
+          onSave={(newValue) => handleDimensionUpdate("w3", newValue)}
+          label="W3"
+          color="green"
+        />
+      </TableCell>
+
+      <TableCell className="text-center">
+        <Badge variant={currentImage.customId ? "default" : "outline"} className="text-xs">
+          {currentImage.customId ? "ID Assigné" : "Nouveau"}
         </Badge>
       </TableCell>
 
@@ -157,121 +229,128 @@ export function ImageRow({ image }: ImageRowProps) {
       </TableCell>
 
       <TableCell className="text-right">
-        <Dialog open={isImageModalOpen} onOpenChange={setIsImageModalOpen}>
-          <DialogTrigger asChild>
-            <Button variant="ghost" size="sm" className="shrink-0">
-              <Eye className="h-4 w-4" />
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
-            <DialogHeader>
-              <DialogTitle className="flex items-center space-x-2">
-                <Eye className="h-5 w-5" />
-                <span>Visualisation de l'image</span>
-              </DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              {/* Image principale */}
-              <div className="relative w-full h-96 bg-muted rounded-lg overflow-hidden">
-                <Image
-                  src={image.imagePath || "/placeholder.svg"}
-                  alt={`Image ${image.imagePath.split("/").pop()}`}
-                  fill
-                  className="object-contain"
-                  priority
-                />
-              </div>
-
-              {/* Informations détaillées */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-3">
-                  <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
-                    Informations générales
-                  </h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-sm">Nom du fichier:</span>
-                      <span className="text-sm font-mono">{image.imagePath.split("/").pop()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm">ID:</span>
-                      <span className="text-sm font-mono">{image.id || "N/A"}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm">ID Personnalisé:</span>
-                      <span className="text-sm font-mono">{image.customId || "Non défini"}</span>
-                    </div>
-                  </div>
+        <div className="flex items-center justify-end space-x-1">
+          <Dialog open={isImageModalOpen} onOpenChange={setIsImageModalOpen}>
+            <DialogTrigger asChild>
+              <Button variant="ghost" size="sm" className="shrink-0">
+                <Eye className="h-4 w-4" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+              <DialogHeader>
+                <DialogTitle className="flex items-center space-x-2">
+                  <Eye className="h-5 w-5" />
+                  <span>Visualisation de l'image</span>
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                {/* Image principale */}
+                <div className="relative w-full h-96 bg-muted rounded-lg overflow-hidden">
+                  <Image
+                    src={currentImage.imagePath || "/placeholder.svg"}
+                    alt={`Image ${currentImage.imagePath.split("/").pop()}`}
+                    fill
+                    className="object-contain"
+                    priority
+                  />
                 </div>
 
-                <div className="space-y-3">
-                  <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Dimensions</h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <h5 className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-2">Longueurs (L)</h5>
-                      <div className="space-y-1">
-                        <div className="flex justify-between text-sm">
-                          <span>L1:</span>
-                          <span className="font-mono bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded">
-                            {formatNumber(image.l1)}
-                          </span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span>L2:</span>
-                          <span className="font-mono bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded">
-                            {formatNumber(image.l2)}
-                          </span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span>L3:</span>
-                          <span className="font-mono bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded">
-                            {formatNumber(image.l3)}
-                          </span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span>L4:</span>
-                          <span className="font-mono bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded">
-                            {formatNumber(image.l4)}
-                          </span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span>L5:</span>
-                          <span className="font-mono bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded">
-                            {formatNumber(image.l5)}
-                          </span>
-                        </div>
+                {/* Informations détaillées */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
+                      Informations générales
+                    </h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-sm">Nom du fichier:</span>
+                        <span className="text-sm font-mono">{currentImage.imagePath.split("/").pop()}</span>
                       </div>
-                    </div>
-
-                    <div>
-                      <h5 className="text-xs font-medium text-green-600 dark:text-green-400 mb-2">Largeurs (W)</h5>
-                      <div className="space-y-1">
-                        <div className="flex justify-between text-sm">
-                          <span>W1:</span>
-                          <span className="font-mono bg-green-50 dark:bg-green-950 px-2 py-0.5 rounded">
-                            {formatNumber(image.w1)}
-                          </span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span>W2:</span>
-                          <span className="font-mono bg-green-50 dark:bg-green-950 px-2 py-0.5 rounded">
-                            {formatNumber(image.w2)}
-                          </span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span>W3:</span>
-                          <span className="font-mono bg-green-50 dark:bg-green-950 px-2 py-0.5 rounded">
-                            {formatNumber(image.w3)}
-                          </span>
-                        </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm">ID:</span>
+                        <span className="text-sm font-mono">{currentImage.id || "N/A"}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm">ID Personnalisé:</span>
+                        <span className="text-sm font-mono">{currentImage.customId || "Non défini"}</span>
                       </div>
                     </div>
                   </div>
+
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Dimensions</h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <h5 className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-2">Longueurs (L)</h5>
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-sm">
+                            <span>L1:</span>
+                            <span className="font-mono bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded">
+                              {formatNumber(currentImage.l1)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span>L2:</span>
+                            <span className="font-mono bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded">
+                              {formatNumber(currentImage.l2)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span>L3:</span>
+                            <span className="font-mono bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded">
+                              {formatNumber(currentImage.l3)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span>L4:</span>
+                            <span className="font-mono bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded">
+                              {formatNumber(currentImage.l4)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span>L5:</span>
+                            <span className="font-mono bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded">
+                              {formatNumber(currentImage.l5)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <h5 className="text-xs font-medium text-green-600 dark:text-green-400 mb-2">Largeurs (W)</h5>
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-sm">
+                            <span>W1:</span>
+                            <span className="font-mono bg-green-50 dark:bg-green-950 px-2 py-0.5 rounded">
+                              {formatNumber(currentImage.w1)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span>W2:</span>
+                            <span className="font-mono bg-green-50 dark:bg-green-950 px-2 py-0.5 rounded">
+                              {formatNumber(currentImage.w2)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span>W3:</span>
+                            <span className="font-mono bg-green-50 dark:bg-green-950 px-2 py-0.5 rounded">
+                              {formatNumber(currentImage.w3)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
+
+          <DeleteConfirmationDialog
+            onConfirm={handleDelete}
+            imageName={currentImage.imagePath.split("/").pop() || ""}
+          />
+        </div>
       </TableCell>
     </TableRow>
   )

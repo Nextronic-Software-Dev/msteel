@@ -81,3 +81,50 @@ export async function getImages() {
     }
   }
 }
+export async function deleteImage(id: number) {
+  try {
+    const image = await db.processedImage.findUnique({
+      where: { id },
+    })
+
+    if (!image) {
+      return { success: false, error: "Image non trouvée" }
+    }
+
+   
+    await db.processedImage.delete({
+      where: { id },
+    })
+
+    return { success: true, message: "Image supprimée avec succès" }
+  } catch (error) {
+    console.error("Erreur lors de la suppression:", error)
+    return { success: false, error: "Erreur lors de la suppression de l'image" }
+  }
+}
+
+export async function updateImageDimensions(
+  id: number,
+  dimensions: {
+    l1?: number
+    l2?: number
+    l3?: number
+    l4?: number
+    l5?: number
+    w1?: number
+    w2?: number
+    w3?: number
+  },
+) {
+  try {
+    const updatedImage = await db.processedImage.update({
+      where: { id },
+      data: dimensions,
+    })
+
+    return { success: true, data: updatedImage }
+  } catch (error) {
+    console.error("Erreur lors de la mise à jour des dimensions:", error)
+    return { success: false, error: "Erreur lors de la mise à jour des dimensions" }
+  }
+}
