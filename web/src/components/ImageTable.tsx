@@ -7,7 +7,8 @@ import { RefreshCw } from 'lucide-react'
 import { ImageRow } from "@/components/image-row"
 import { Toaster } from "sonner"
 import { ExportDialog } from "./export-dialog"
-import { getImages } from "@/lib/action" // Import the server action
+import { getImages } from "@/lib/action"
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"
 
 interface ImageData {
   success: boolean
@@ -25,12 +26,14 @@ export function ImageTable({ initialData }: ImageTableProps) {
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [lastFetchTime, setLastFetchTime] = useState<number>(Date.now())
   const [isConnected, setIsConnected] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 10
 
   // Memoized function to fetch images
   const fetchImages = useCallback(async () => {
     setIsRefreshing(true)
     try {
-      const newData = await getImages() // Call the server action
+      const newData = await getImages()
       setImageData(newData)
       setLastFetchTime(Date.now())
       setIsConnected(true)
@@ -48,9 +51,7 @@ export function ImageTable({ initialData }: ImageTableProps) {
 
   useEffect(() => {
     fetchImages()
-
     const intervalId = setInterval(fetchImages, 30000)
-
     return () => clearInterval(intervalId)
   }, [fetchImages])
 
@@ -69,6 +70,18 @@ export function ImageTable({ initialData }: ImageTableProps) {
   }, [])
 
   const images = imageData.success && Array.isArray(imageData.images) ? imageData.images : []
+  
+  // Pagination calculations
+  const totalPages = Math.ceil(images.length / itemsPerPage)
+  const paginatedImages = images.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  )
+
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+  }
 
   return (
     <>
@@ -76,7 +89,7 @@ export function ImageTable({ initialData }: ImageTableProps) {
         <div className="flex gap-2">
           <Button
             disabled={isRefreshing}
-            onClick={fetchImages} // Manual refresh option
+            onClick={fetchImages}
             variant="outline"
             size="sm"
           >
@@ -134,8 +147,8 @@ export function ImageTable({ initialData }: ImageTableProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {images.length > 0 ? (
-                images.map((image: any, index: number) => (
+              {paginatedImages.length > 0 ? (
+                paginatedImages.map((image: any, index: number) => (
                   <ImageRow
                     key={`${image.id}-${lastFetchTime}-${index}`}
                     image={image}
@@ -168,6 +181,35 @@ export function ImageTable({ initialData }: ImageTableProps) {
           </Table>
         </div>
       </div>
+
+      {totalPages > 1 && (
+        <Pagination className="mt-4">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                onClick={() => handlePageChange(currentPage - 1)}
+                className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+              />
+            </PaginationItem>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <PaginationItem key={page}>
+                <PaginationLink
+                  onClick={() => handlePageChange(page)}
+                  isActive={currentPage === page}
+                >
+                  {page}
+                </PaginationLink>
+              </PaginationItem>
+            ))}
+            <PaginationItem>
+              <PaginationNext
+                onClick={() => handlePageChange(currentPage + 1)}
+                className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
 
       <Toaster />
     </>
