@@ -8,7 +8,7 @@ import { ImageRow } from "@/components/image-row"
 import { Toaster } from "sonner"
 import { ExportDialog } from "./export-dialog"
 import { getImages } from "@/lib/action"
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from "@/components/ui/pagination"
 
 interface ImageData {
   success: boolean
@@ -28,6 +28,7 @@ export function ImageTable({ initialData }: ImageTableProps) {
   const [isConnected, setIsConnected] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
+  const maxVisiblePages = 5 // Number of page links to show at a time
 
   // Memoized function to fetch images
   const fetchImages = useCallback(async () => {
@@ -80,7 +81,23 @@ export function ImageTable({ initialData }: ImageTableProps) {
 
   // Handle page change
   const handlePageChange = (page: number) => {
-    setCurrentPage(page)
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page)
+    }
+  }
+
+  // Generate pagination range
+  const getPaginationRange = () => {
+    const halfVisible = Math.floor(maxVisiblePages / 2)
+    let start = Math.max(1, currentPage - halfVisible)
+    let end = Math.min(totalPages, start + maxVisiblePages - 1)
+
+    // Adjust start if end is at totalPages
+    if (end === totalPages) {
+      start = Math.max(1, end - maxVisiblePages + 1)
+    }
+
+    return Array.from({ length: end - start + 1 }, (_, i) => start + i)
   }
 
   return (
@@ -127,7 +144,7 @@ export function ImageTable({ initialData }: ImageTableProps) {
           <Table>
             <TableCaption className="py-4">
               {images.length > 0
-                ? `Liste de ${images.length} image(s) - ${isConnected ? 'Mise à jour automatique' : 'Mise à jour toutes les 3s'}`
+                ? `Liste de ${images.length} image(s) - Page ${currentPage} sur ${totalPages}`
                 : "Aucune image disponible"}
             </TableCaption>
             <TableHeader>
@@ -158,7 +175,7 @@ export function ImageTable({ initialData }: ImageTableProps) {
                 ))
               ) : (
                 <TableRow>
-                  <td colSpan={12} className="text-center py-12 text-muted-foreground">
+                  <td  className="text-center py-12 text-muted-foreground">
                     <div className="flex flex-col items-center space-y-2">
                       <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
                         <RefreshCw className={`h-6 w-6 ${isRefreshing ? "animate-spin" : ""}`} />
@@ -186,12 +203,27 @@ export function ImageTable({ initialData }: ImageTableProps) {
         <Pagination className="mt-4">
           <PaginationContent>
             <PaginationItem>
+              <PaginationLink
+                onClick={() => handlePageChange(1)}
+                className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+              >
+                Première
+              </PaginationLink>
+            </PaginationItem>
+            <PaginationItem>
               <PaginationPrevious
                 onClick={() => handlePageChange(currentPage - 1)}
                 className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
               />
             </PaginationItem>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+
+            {currentPage > 3 && (
+              <PaginationItem>
+                <PaginationEllipsis />
+              </PaginationItem>
+            )}
+
+            {getPaginationRange().map((page) => (
               <PaginationItem key={page}>
                 <PaginationLink
                   onClick={() => handlePageChange(page)}
@@ -201,11 +233,26 @@ export function ImageTable({ initialData }: ImageTableProps) {
                 </PaginationLink>
               </PaginationItem>
             ))}
+
+            {currentPage < totalPages - 2 && (
+              <PaginationItem>
+                <PaginationEllipsis />
+              </PaginationItem>
+            )}
+
             <PaginationItem>
               <PaginationNext
                 onClick={() => handlePageChange(currentPage + 1)}
                 className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
               />
+            </PaginationItem>
+            <PaginationItem>
+              <PaginationLink
+                onClick={() => handlePageChange(totalPages)}
+                className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+              >
+                Dernière
+              </PaginationLink>
             </PaginationItem>
           </PaginationContent>
         </Pagination>
