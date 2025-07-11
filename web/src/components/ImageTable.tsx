@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { Table, TableBody, TableCaption, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { RefreshCw } from 'lucide-react'
@@ -27,10 +27,15 @@ export function ImageTable({ initialData }: ImageTableProps) {
   const [lastFetchTime, setLastFetchTime] = useState<number>(Date.now())
   const [isConnected, setIsConnected] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
+  const [dialoguesOpen, setDialoguesOpen] = useState(0) 
+  const intervalRef = useRef<NodeJS.Timeout | null>(null)
   const itemsPerPage = 10
-  const maxVisiblePages = 5 // Number of page links to show at a time
+  const maxVisiblePages = 5
 
-  // Memoized function to fetch images
+  const handleDialogOpenChange = useCallback((isOpen: boolean) => {
+    setDialoguesOpen(prev => isOpen ? prev + 1 : Math.max(0, prev - 1))
+  }, [])
+
   const fetchImages = useCallback(async () => {
     setIsRefreshing(true)
     try {
@@ -50,11 +55,38 @@ export function ImageTable({ initialData }: ImageTableProps) {
     }
   }, [])
 
+  const startInterval = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current)
+    }
+    intervalRef.current = setInterval(() => {
+      if (dialoguesOpen === 0) {
+        fetchImages()
+      }
+    }, 30000)
+  }, [fetchImages, dialoguesOpen])
+
+  const stopInterval = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current)
+      intervalRef.current = null
+    }
+  }, [])
+
   useEffect(() => {
-    fetchImages()
-    const intervalId = setInterval(fetchImages, 30000)
-    return () => clearInterval(intervalId)
-  }, [fetchImages])
+    if (dialoguesOpen > 0) {
+      stopInterval()
+    } else {
+      startInterval()
+    }
+
+    return () => stopInterval()
+  }, [dialoguesOpen, startInterval, stopInterval])
+
+
+  useEffect(() => {
+    return () => stopInterval()
+  }, [stopInterval])
 
   const handleImageUpdate = useCallback((updatedImage: any) => {
     setImageData((prev) => ({
@@ -72,27 +104,23 @@ export function ImageTable({ initialData }: ImageTableProps) {
 
   const images = imageData.success && Array.isArray(imageData.images) ? imageData.images : []
   
-  // Pagination calculations
   const totalPages = Math.ceil(images.length / itemsPerPage)
   const paginatedImages = images.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   )
 
-  // Handle page change
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page)
     }
   }
 
-  // Generate pagination range
   const getPaginationRange = () => {
     const halfVisible = Math.floor(maxVisiblePages / 2)
     let start = Math.max(1, currentPage - halfVisible)
     let end = Math.min(totalPages, start + maxVisiblePages - 1)
 
-    // Adjust start if end is at totalPages
     if (end === totalPages) {
       start = Math.max(1, end - maxVisiblePages + 1)
     }
@@ -122,6 +150,12 @@ export function ImageTable({ initialData }: ImageTableProps) {
             className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}
             title={isConnected ? 'Connexion temps réel active' : 'Connexion temps réel inactive'}
           />
+          {dialoguesOpen > 0 && (
+            <div
+              className="w-2 h-2 rounded-full bg-orange-500"
+              title="Actualisation automatique suspendue (dialogue ouvert)"
+            />
+          )}
         </div>
       </div>
 
@@ -160,7 +194,7 @@ export function ImageTable({ initialData }: ImageTableProps) {
                 <TableHead className="text-center min-w-[80px]">L3</TableHead>
                 <TableHead className="text-center min-w-[120px]">Statut</TableHead>
                 <TableHead className="min-w-[200px]">ID Personnalisé</TableHead>
-                <TableHead className="text-right min-w-[120px]">Actions</TableHead>
+                <TableHead className="text-right min-w-[120px] sticky right-0 bg-background border-l">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -171,11 +205,12 @@ export function ImageTable({ initialData }: ImageTableProps) {
                     image={image}
                     onUpdate={handleImageUpdate}
                     onDelete={handleImageDelete}
+                    onDialogOpenChange={handleDialogOpenChange}
                   />
                 ))
               ) : (
                 <TableRow>
-                  <td  className="text-center py-12 text-muted-foreground">
+                  <td colSpan={12} className="text-center py-12 text-muted-foreground">
                     <div className="flex flex-col items-center space-y-2">
                       <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
                         <RefreshCw className={`h-6 w-6 ${isRefreshing ? "animate-spin" : ""}`} />
