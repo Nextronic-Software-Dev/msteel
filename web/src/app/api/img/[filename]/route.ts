@@ -10,18 +10,14 @@ export async function GET(
   try {
     const { filename } = params
     
-    // Chemin vers le fichier image dans public/images
     const imagePath = join(process.cwd(), 'public', 'images', filename)
     
-    // Vérifier si le fichier existe
     if (!existsSync(imagePath)) {
       return new NextResponse('Image not found', { status: 404 })
     }
     
-    // Lire le fichier
     const imageBuffer = await readFile(imagePath)
     
-    // Déterminer le type MIME basé sur l'extension
     const getContentType = (filename: string): string => {
       const ext = filename.toLowerCase().split('.').pop()
       switch (ext) {
@@ -43,12 +39,11 @@ export async function GET(
     
     const contentType = getContentType(filename)
     
-    // Retourner l'image avec les bons headers
     return new NextResponse(imageBuffer, {
       status: 200,
       headers: {
         'Content-Type': contentType,
-        'Cache-Control': 'public, max-age=31536000, immutable', // Cache pendant 1 an
+        'Cache-Control': 'public, max-age=31536000, immutable',
         'Content-Length': imageBuffer.length.toString(),
       },
     })
