@@ -19,6 +19,7 @@ export async function GET(request: NextRequest) {
         id: true,
         customId: true,
         imagePath: true,
+        
         l1: true,
         l2: true,
         l3: true,
@@ -52,11 +53,13 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    const imagesWithFullUrl = unsentImages.map(image => ({
-      ...image,
-      imageUrl: `${SERVER_BASE_URL}${image.imagePath}`
-    }))
-
+ const imagesWithFullUrl = unsentImages.map(image => {
+  const filename = image.imagePath.replace(/^images\//, '')
+  return {
+    ...image,
+    imageUrl: `${SERVER_BASE_URL}/api/img/${filename}`
+  }
+})
     return NextResponse.json({
       success: true,
       data: imagesWithFullUrl,
