@@ -53,13 +53,14 @@ export async function GET(request: NextRequest) {
       }
     })
 
- const imagesWithFullUrl = unsentImages.map(image => {
-  const filename = image.imagePath.replace(/^images\//, '')
+const imagesWithFullUrl = unsentImages.map(image => {
+  const filename = image.imagePath.replace(/^\/?images\//, '')
   return {
     ...image,
     imageUrl: `${SERVER_BASE_URL}/api/img/${filename}`
   }
 })
+
     return NextResponse.json({
       success: true,
       data: imagesWithFullUrl,
