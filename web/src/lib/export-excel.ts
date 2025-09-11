@@ -36,8 +36,18 @@ export function exportToExcel(images: ProcessedImage[], filename?: string) {
     "W2 (mm)": Number(image.w2.toFixed(2)),
     "W3 (mm)": Number(image.w3.toFixed(2)),
     Statut: image.customId ? "ID Assigné" : "Nouveau",
-    "Date de création": image.createdAt ? new Date(image.createdAt).toLocaleDateString("fr-FR") : "",
-    "Dernière modification": image.updatedAt ? new Date(image.updatedAt).toLocaleDateString("fr-FR") : "",
+"Date de création": image.createdAt
+  ? (() => {
+      const d = new Date(image.createdAt)
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`
+    })()
+  : "",
+"Dernière modification": image.updatedAt
+  ? (() => {
+      const d = new Date(image.updatedAt)
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`
+    })()
+  : "",
   }))
 
   // Créer la feuille de calcul principale
