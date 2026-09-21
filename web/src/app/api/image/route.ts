@@ -22,6 +22,26 @@ export async function POST(request: NextRequest) {
     const w1 = Number(form.get('w1'))
     const w2 = Number(form.get('w2'))
     const w3 = Number(form.get('w3'))
+    const dateValue = form.get('date')
+    let createdAt: Date | undefined
+
+    if (dateValue !== null) {
+      if (typeof dateValue !== 'string' || !dateValue.trim()) {
+        return NextResponse.json(
+          { success: false, error: 'Date invalide' },
+          { status: 400 }
+        )
+      }
+
+      createdAt = new Date(dateValue)
+
+      if (isNaN(createdAt.getTime())) {
+        return NextResponse.json(
+          { success: false, error: 'Date invalide' },
+          { status: 400 }
+        )
+      }
+    }
 
     if (!file || isNaN(l1) || isNaN(l2) || isNaN(l3) || isNaN(l4) || isNaN(l5) || 
         isNaN(w1) || isNaN(w2) || isNaN(w3)) {
@@ -46,7 +66,8 @@ export async function POST(request: NextRequest) {
       data: {
         imagePath: imagePath,
         l1, l2, l3, l4, l5,
-        w1, w2, w3
+        w1, w2, w3,
+        ...(createdAt && { createdAt })
       }
     })
 
