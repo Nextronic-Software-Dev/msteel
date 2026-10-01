@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 
 // URL fixe du serveur
-const SERVER_BASE_URL = 'http://ac4ogcgs08gkkow8o04ggo4g.57.128.74.181.sslip.io:3025'
+const SERVER_BASE_URL = 'http://v44swccokwcwggg8og88w040.51.77.20.66.sslip.io:3027'
 
 export async function GET(request: NextRequest) {
   try {
