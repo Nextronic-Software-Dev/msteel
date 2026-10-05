@@ -48,20 +48,21 @@ export async function login(data: {
   const user = await db.user.findUnique({
     where: { email },
   });
-  if (user) {
-    const sessionUser: SessionUser = {
-      ...user,
-    };
-  }
   if (!user) return { error: "Invalid email or password" };
 
   const isValid = await bcrypt.compare(password, user.password);
   if (!isValid) return { error: "Invalid email or password" };
   const expires = new Date(Date.now() + env.EXPIRY_TIME * 1_000);
-  const session = await encrypt({ user, expires });
+  const sessionUser: SessionUser = {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    createdAt: user.createdAt,
+  };
+  const session = await encrypt({ user: sessionUser, expires });
 
   cookies().set("session", session, { expires, httpOnly: true });
-  return { user };
+  return { user: sessionUser };
 }
 
 export async function logout() {

@@ -28,6 +28,7 @@ export function ImageTable({ initialData }: ImageTableProps) {
   const [isConnected, setIsConnected] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [dialoguesOpen, setDialoguesOpen] = useState(0) 
+  const [preferences, setPreferences] = useState({ autoRefresh: true, refreshInterval: 30, compactTables: false })
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
   const itemsPerPage = 10
   const maxVisiblePages = 5
@@ -59,18 +60,34 @@ export function ImageTable({ initialData }: ImageTableProps) {
     if (intervalRef.current) {
       clearInterval(intervalRef.current)
     }
+    if (!preferences.autoRefresh) return
     intervalRef.current = setInterval(() => {
       if (dialoguesOpen === 0) {
         fetchImages()
       }
-    }, 30000)
-  }, [fetchImages, dialoguesOpen])
+    }, preferences.refreshInterval * 1000)
+  }, [fetchImages, dialoguesOpen, preferences.autoRefresh, preferences.refreshInterval])
 
   const stopInterval = useCallback(() => {
     if (intervalRef.current) {
       clearInterval(intervalRef.current)
       intervalRef.current = null
     }
+  }, [])
+
+  useEffect(() => {
+    const loadPreferences = () => {
+      const stored = localStorage.getItem("msteel:preferences")
+      if (!stored) return
+      try {
+        setPreferences((current) => ({ ...current, ...JSON.parse(stored) }))
+      } catch {
+        localStorage.removeItem("msteel:preferences")
+      }
+    }
+    loadPreferences()
+    window.addEventListener("msteel:preferences-updated", loadPreferences)
+    return () => window.removeEventListener("msteel:preferences-updated", loadPreferences)
   }, [])
 
   useEffect(() => {
@@ -182,7 +199,7 @@ export function ImageTable({ initialData }: ImageTableProps) {
                 : "Aucune image disponible"}
             </TableCaption>
             <TableHeader>
-              <TableRow className="bg-muted/50">
+                <TableRow className={`bg-muted/50 ${preferences.compactTables ? "h-9" : ""}`}>
                 <TableHead className="min-w-[200px]">Image & Nom</TableHead>
                 <TableHead className="text-center min-w-[80px]">W1</TableHead>
                 <TableHead className="text-center min-w-[80px]">W2</TableHead>

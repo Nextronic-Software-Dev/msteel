@@ -1,6 +1,6 @@
 "use client"
 
-import { Home, ImageIcon, Settings, BarChart3, Users, FileText } from "lucide-react"
+import { Home, ImageIcon, Settings, BarChart3, FileText } from "lucide-react"
 import {
   Sidebar,
   SidebarContent,
@@ -23,23 +23,23 @@ const menuItems = [
     icon: Home,
   },
   {
-    title: "Gallery",
+    title: "Galerie",
     url: "/gallery",
     icon: ImageIcon,
   },
   {
-    title: "Analytics",
+    title: "Analyses",
     url: "/analytics",
     icon: BarChart3,
   },
 
   {
-    title: "Reports",
+    title: "Rapports",
     url: "/reports",
     icon: FileText,
   },
   {
-    title: "Settings",
+    title: "Paramètres",
     url: "/settings",
     icon: Settings,
   },

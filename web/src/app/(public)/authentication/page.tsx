@@ -16,7 +16,7 @@ export default function Authentication() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
       <div className="absolute top-6 left-6 z-10">
    <Image
-  src="/logo_vertical.png"
+  src="/logo.png"
   alt="Logo"
   width={600}
   height={500}
