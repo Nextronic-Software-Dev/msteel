@@ -55,7 +55,7 @@ export function SettingsPanel({ user }: { user: { name: string; email: string } 
   }
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
+    <div className="w-full space-y-6">
       <Toaster />
       <div>
         <p className="text-sm font-medium text-teal-700">Configuration</p>

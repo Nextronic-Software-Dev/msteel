@@ -103,7 +103,7 @@ export function AnalyticsDashboard({ images }: { images: ImageRecord[] }) {
   ]
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6">
+    <div className="w-full space-y-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-sm font-medium text-teal-700">Pilotage de production</p>
@@ -146,7 +146,7 @@ export function AnalyticsDashboard({ images }: { images: ImageRecord[] }) {
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
                   <XAxis dataKey="label" tick={{ fontSize: 12 }} tickLine={false} axisLine={false} />
                   <YAxis allowDecimals={false} tick={{ fontSize: 12 }} tickLine={false} axisLine={false} />
-                  <Tooltip />
+                  <Tooltip contentStyle={{ background: "hsl(var(--popover))", borderColor: "hsl(var(--border))", borderRadius: 12 }} />
                   <Legend />
                   <Line type="monotone" dataKey="traites" name="Pièces traitées" stroke="#0f766e" strokeWidth={2.5} dot={false} />
                   <Line type="monotone" dataKey="identifies" name="Identifiées" stroke="#2563eb" strokeWidth={2.5} dot={false} />
@@ -163,7 +163,7 @@ export function AnalyticsDashboard({ images }: { images: ImageRecord[] }) {
                   <Pie data={statusData} dataKey="value" nameKey="name" innerRadius={58} outerRadius={90} paddingAngle={3}>
                     {statusData.map((entry, index) => <Cell key={entry.name} fill={COLORS[index % COLORS.length]} />)}
                   </Pie>
-                  <Tooltip />
+                  <Tooltip contentStyle={{ background: "hsl(var(--popover))", borderColor: "hsl(var(--border))", borderRadius: 12 }} />
                   <Legend verticalAlign="bottom" />
                 </PieChart>
               </ResponsiveContainer>
@@ -178,7 +178,7 @@ export function AnalyticsDashboard({ images }: { images: ImageRecord[] }) {
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
                   <XAxis dataKey="dimension" tickLine={false} axisLine={false} />
                   <YAxis tick={{ fontSize: 12 }} tickLine={false} axisLine={false} />
-                  <Tooltip formatter={(value: number) => `${number.format(value)} mm`} />
+                  <Tooltip contentStyle={{ background: "hsl(var(--popover))", borderColor: "hsl(var(--border))", borderRadius: 12 }} formatter={(value: number) => `${number.format(value)} mm`} />
                   <Bar dataKey="moyenne" name="Moyenne" fill="#0f766e" radius={[5, 5, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>

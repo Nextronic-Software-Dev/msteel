@@ -79,7 +79,7 @@ export function ReportsWorkspace({ images }: { images: ImageRecord[] }) {
   }
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6">
+    <div className="w-full space-y-6">
       <Toaster />
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
@@ -94,7 +94,7 @@ export function ReportsWorkspace({ images }: { images: ImageRecord[] }) {
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[
-          ["Résultats", filtered.length, "text-slate-900"],
+          ["Résultats", filtered.length, "text-foreground"],
           ["Envoyées", summary.sent, "text-emerald-700"],
           ["Prêtes", summary.ready, "text-blue-700"],
           ["À identifier", summary.unidentified, "text-amber-700"],

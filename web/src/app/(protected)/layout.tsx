@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import SessionProvider from "@/components/session-provider";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
-import { Header } from "@/components/header";
+import { ProfessionalHeader } from "@/components/professional-header";
 
 export default async function ProtectedLayout({
   children,
@@ -19,9 +19,9 @@ export default async function ProtectedLayout({
     <SessionProvider session={session}>
       <SidebarProvider>
         <AppSidebar />
-        <div className="flex-1 flex flex-col min-h-screen">
-          <Header />
-          <main className="flex-1 p-6">
+        <div className="flex min-h-screen min-w-0 flex-1 flex-col bg-slate-50/80 dark:bg-slate-950">
+          <ProfessionalHeader />
+          <main className="flex-1 p-4 sm:p-6 lg:p-8">
             {children}
           </main>
         </div>

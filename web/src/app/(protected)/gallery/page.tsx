@@ -12,7 +12,7 @@ export default async function GalleryPage() {
   })
 
   return (
-    <div className="p-8">
+    <div className="w-full space-y-6">
       <h1 className="text-2xl font-bold mb-6">Galerie des images traitées</h1>
       {images.length === 0 ? (
         <div className="text-muted-foreground">Aucune image traitée pour le moment.</div>
@@ -35,7 +35,7 @@ export default async function GalleryPage() {
               <div className="text-sm text-muted-foreground mb-2">
                 W: {img.w1}, {img.w2}, {img.w3}
               </div>
-              <div className="text-xs text-gray-400">
+              <div className="text-xs text-muted-foreground">
                 Ajoutée le {new Date(img.createdAt).toLocaleString()}
               </div>
             </div>
