@@ -68,7 +68,7 @@ export function AppSidebar() {
             <SidebarMenu className="gap-1.5">
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={pathname === item.url} tooltip={item.title} size="lg" className="h-11 rounded-xl px-3 text-slate-300 hover:bg-white/10 hover:text-white data-[active=true]:bg-teal-500 data-[active=true]:font-semibold data-[active=true]:text-white data-[active=true]:shadow-lg data-[active=true]:shadow-teal-950/30 group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:!h-11 group-data-[collapsible=icon]:!w-11 group-data-[collapsible=icon]:!p-0 [&>svg]:h-5 [&>svg]:w-5 group-data-[collapsible=icon]:[&>svg]:mx-auto">
+                  <SidebarMenuButton asChild isActive={pathname === item.url} tooltip={item.title} size="lg" className="h-11 rounded-xl px-3 text-slate-300 hover:bg-white/10 hover:text-white data-[active=true]:bg-teal-500 data-[active=true]:font-semibold data-[active=true]:text-white data-[active=true]:shadow-lg data-[active=true]:shadow-teal-950/30 group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:!h-11 group-data-[collapsible=icon]:!w-11 group-data-[collapsible=icon]:!gap-0 group-data-[collapsible=icon]:!p-0 group-data-[collapsible=icon]:[&>span]:hidden [&>svg]:h-5 [&>svg]:w-5 group-data-[collapsible=icon]:[&>svg]:mx-auto">
                     <Link href={item.url}>
                       <item.icon />
                       <span>{item.title}</span>
