@@ -144,6 +144,9 @@ export function ImageRow({ image, onUpdate, onDelete, onDialogOpenChange }: Imag
               <img
                 src={getImageUrl(currentImage.imagePath) || "/placeholder.svg?height=48&width=48"}
                 alt="Image"
+                loading="lazy"
+                decoding="async"
+                fetchPriority="low"
                 className="w-full h-full object-cover"
                 onError={(e) => {
                   e.currentTarget.src = "/placeholder.svg?height=48&width=48"

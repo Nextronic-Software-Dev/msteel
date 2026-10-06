@@ -7,12 +7,16 @@ import { RefreshCw } from 'lucide-react'
 import { ImageRow } from "@/components/image-row"
 import { Toaster } from "sonner"
 import { ExportDialog } from "./export-dialog"
-import { getImages } from "@/lib/action"
+import { getImagesPage } from "@/lib/action"
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from "@/components/ui/pagination"
 
 interface ImageData {
   success: boolean
   images: any[]
+  total: number
+  page: number
+  pageSize: number
+  totalPages: number
   lastUpdated?: string
   error?: string
 }
@@ -26,7 +30,7 @@ export function ImageTable({ initialData }: ImageTableProps) {
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [lastFetchTime, setLastFetchTime] = useState<number>(Date.now())
   const [isConnected, setIsConnected] = useState(false)
-  const [currentPage, setCurrentPage] = useState(1)
+  const [currentPage, setCurrentPage] = useState(initialData.page || 1)
   const [dialoguesOpen, setDialoguesOpen] = useState(0) 
   const [preferences, setPreferences] = useState({ autoRefresh: true, refreshInterval: 30, compactTables: false })
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
@@ -37,11 +41,12 @@ export function ImageTable({ initialData }: ImageTableProps) {
     setDialoguesOpen(prev => isOpen ? prev + 1 : Math.max(0, prev - 1))
   }, [])
 
-  const fetchImages = useCallback(async () => {
+  const fetchImages = useCallback(async (requestedPage = currentPage) => {
     setIsRefreshing(true)
     try {
-      const newData = await getImages()
+      const newData = await getImagesPage(requestedPage, itemsPerPage)
       setImageData(newData)
+      setCurrentPage(newData.page)
       setLastFetchTime(Date.now())
       setIsConnected(true)
     } catch (error) {
@@ -54,7 +59,7 @@ export function ImageTable({ initialData }: ImageTableProps) {
     } finally {
       setIsRefreshing(false)
     }
-  }, [])
+  }, [currentPage])
 
   const startInterval = useCallback(() => {
     if (intervalRef.current) {
@@ -88,7 +93,7 @@ export function ImageTable({ initialData }: ImageTableProps) {
     loadPreferences()
     window.addEventListener("msteel:preferences-updated", loadPreferences)
     return () => window.removeEventListener("msteel:preferences-updated", loadPreferences)
-  }, [])
+  }, [currentPage])
 
   useEffect(() => {
     if (dialoguesOpen > 0) {
@@ -121,15 +126,13 @@ export function ImageTable({ initialData }: ImageTableProps) {
 
   const images = imageData.success && Array.isArray(imageData.images) ? imageData.images : []
   
-  const totalPages = Math.ceil(images.length / itemsPerPage)
-  const paginatedImages = images.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  )
+  const totalPages = imageData.totalPages || 1
+  const paginatedImages = images
 
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page)
+      void fetchImages(page)
     }
   }
 
@@ -151,7 +154,7 @@ export function ImageTable({ initialData }: ImageTableProps) {
         <div className="flex gap-2">
           <Button
             disabled={isRefreshing}
-            onClick={fetchImages}
+            onClick={() => fetchImages()}
             variant="outline"
             size="sm"
           >
@@ -162,7 +165,7 @@ export function ImageTable({ initialData }: ImageTableProps) {
         </div>
         <div className="text-sm text-muted-foreground flex items-center gap-2">
           <span>Dernière mise à jour: {new Date(lastFetchTime).toLocaleTimeString()}</span>
-          <span>({images.length} images)</span>
+          <span>({imageData.total} images)</span>
           <div
             className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}
             title={isConnected ? 'Connexion temps réel active' : 'Connexion temps réel inactive'}
@@ -183,7 +186,7 @@ export function ImageTable({ initialData }: ImageTableProps) {
             variant="outline"
             size="sm"
             className="mt-2"
-            onClick={fetchImages}
+            onClick={() => fetchImages()}
           >
             Réessayer
           </Button>
@@ -195,7 +198,7 @@ export function ImageTable({ initialData }: ImageTableProps) {
           <Table>
             <TableCaption className="py-4">
               {images.length > 0
-                ? `Liste de ${images.length} image(s) - Page ${currentPage} sur ${totalPages}`
+                ? `${imageData.total} image(s) au total - Page ${currentPage} sur ${totalPages}`
                 : "Aucune image disponible"}
             </TableCaption>
             <TableHeader>
@@ -237,7 +240,7 @@ export function ImageTable({ initialData }: ImageTableProps) {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={fetchImages}
+                          onClick={() => fetchImages()}
                         >
                           Charger les données
                         </Button>

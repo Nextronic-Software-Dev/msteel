@@ -16,21 +16,24 @@ model User {
 }
 
 model ProcessedImage {
-  id          Int      @id @default(autoincrement())
-  customId    String?  
-  imagePath   String
-  l1          Float
-  l2          Float
-  l3          Float
-  l4          Float
-  l5          Float
-  w1          Float
-  w2          Float
-  w3          Float
-  sent        Boolean  @default(false)  
-  sentAt      DateTime? 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+  id        Int       @id @default(autoincrement())
+  customId  String?
+  imagePath String
+  l1        Float
+  l2        Float
+  l3        Float
+  l4        Float
+  l5        Float
+  w1        Float
+  w2        Float
+  w3        Float
+  sent      Boolean   @default(false)
+  sentAt    DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
   @@index([sent, createdAt])
+  @@index([createdAt])
+  @@index([customId])
+  @@index([imagePath])
 }

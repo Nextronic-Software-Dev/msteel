@@ -81,6 +81,45 @@ export async function getImages() {
     }
   }
 }
+const DEFAULT_PAGE_SIZE = 10
+const MAX_PAGE_SIZE = 100
+
+export async function getImagesPage(page = 1, pageSize = DEFAULT_PAGE_SIZE) {
+  try {
+    const safePage = Math.max(1, Math.floor(page) || 1)
+    const safePageSize = Math.min(MAX_PAGE_SIZE, Math.max(1, Math.floor(pageSize) || DEFAULT_PAGE_SIZE))
+    const [images, total] = await db.$transaction([
+      db.processedImage.findMany({
+        orderBy: { createdAt: "desc" },
+        skip: (safePage - 1) * safePageSize,
+        take: safePageSize,
+      }),
+      db.processedImage.count(),
+    ])
+
+    return {
+      success: true,
+      images,
+      total,
+      page: safePage,
+      pageSize: safePageSize,
+      totalPages: Math.max(1, Math.ceil(total / safePageSize)),
+      lastUpdated: new Date().toISOString(),
+    }
+  } catch (error) {
+    console.error("Erreur lors de la récupération paginée des images:", error)
+    return {
+      success: false,
+      images: [],
+      total: 0,
+      page: 1,
+      pageSize: DEFAULT_PAGE_SIZE,
+      totalPages: 1,
+      error: "Erreur lors de la récupération des images",
+    }
+  }
+}
+
 export async function deleteImage(id: number) {
   try {
     const image = await db.processedImage.findUnique({

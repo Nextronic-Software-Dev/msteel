@@ -1,13 +1,13 @@
 import { getServerSession } from "@/lib/auth"
 import { redirect } from "next/navigation"
-import { getImages } from "@/lib/action"
+import { getImagesPage } from "@/lib/action"
 import { ImageTable } from "@/components/ImageTable"
 
 export default async function Home() {
   const session = await getServerSession()
   if (!session) redirect("/authentication")
   
-  const imageData = await getImages()
+  const imageData = await getImagesPage(1, 10)
   
   return (
     <div className="w-full space-y-6">

@@ -1,101 +1,42 @@
-/* eslint-disable */
 "use client"
 
 import { useState } from "react"
-import Link from "next/link"
-import SigninForm from "./_component/sign-in-form"
-import { Button } from "@/components/ui/button"
-import SignUpForm from "./_component/sign-up-form"
 import Image from "next/image"
-import { Wrench, Bot, Ruler } from "lucide-react"
+import { BarChart3, CheckCircle2, Ruler, ShieldCheck } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { ThemeToggle } from "@/components/theme-toggle"
+import SigninForm from "./_component/sign-in-form"
+import SignUpForm from "./_component/sign-up-form"
+
+const features = [
+  { icon: Ruler, title: "Mesures précises", description: "Centralisez les dimensions calculées automatiquement." },
+  { icon: BarChart3, title: "Pilotage instantané", description: "Suivez la production et les indicateurs en temps réel." },
+  { icon: ShieldCheck, title: "Traçabilité sécurisée", description: "Retrouvez chaque pièce, image et transmission." },
+]
 
 export default function Authentication() {
   const [isSignUp, setIsSignUp] = useState(false)
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
-      <div className="absolute top-6 left-6 z-10">
-   <Image
-  src="/logo.png"
-  alt="Logo"
-  width={600}
-  height={500}
-  className="h-24 w-24 object-contain"
-/>
-      </div>
+  return <main className="relative min-h-svh overflow-x-hidden bg-background lg:h-svh lg:overflow-hidden">
+    <div className="absolute right-4 top-4 z-20 sm:right-6 sm:top-6"><ThemeToggle /></div>
+    <div className="grid min-h-svh lg:h-svh lg:grid-cols-[1.05fr_0.95fr]">
+      <section className="relative hidden overflow-hidden bg-slate-950 p-10 text-white lg:flex lg:flex-col lg:justify-between xl:p-14">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(20,184,166,0.22),transparent_35%),radial-gradient(circle_at_90%_90%,rgba(37,99,235,0.18),transparent_38%)]" />
+        <div className="absolute -left-24 top-1/3 h-72 w-72 rounded-full border border-white/10" /><div className="absolute -left-10 top-1/3 h-72 w-72 rounded-full border border-white/5" />
+        <div className="relative flex items-center gap-3"><div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-xl"><Image src="/logo.png" alt="Nextronic" width={44} height={44} className="h-10 w-10 object-contain" priority /></div><div><p className="font-semibold tracking-wide">Nextronic</p><p className="text-xs text-slate-400">Contrôle industriel intelligent</p></div></div>
+        <div className="relative max-w-xl space-y-8"><div className="space-y-4"><div className="inline-flex items-center gap-2 rounded-full border border-teal-400/20 bg-teal-400/10 px-3 py-1.5 text-xs font-medium text-teal-200"><CheckCircle2 className="h-3.5 w-3.5" /> Plateforme de production</div><h1 className="text-balance text-4xl font-semibold leading-tight xl:text-5xl">Transformez chaque image en donnée exploitable.</h1><p className="max-w-lg text-base leading-relaxed text-slate-300">Une interface unique pour mesurer, contrôler et tracer vos tôles avec rapidité et précision.</p></div><div className="grid gap-4 xl:grid-cols-3">{features.map((feature) => <div key={feature.title} className="rounded-2xl border border-white/10 bg-white/[0.06] p-4 backdrop-blur-sm"><feature.icon className="mb-3 h-5 w-5 text-teal-300" /><p className="text-sm font-medium">{feature.title}</p><p className="mt-1 text-xs leading-relaxed text-slate-400">{feature.description}</p></div>)}</div></div>
+        <p className="relative text-xs text-slate-500">© {new Date().getFullYear()} Nextronic · Supervision industrielle</p>
+      </section>
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid lg:grid-cols-2 gap-8 items-center min-h-screen">
-          <div className="hidden lg:flex flex-col justify-center space-y-8 pt-16">
-            <div className="space-y-6">
-              <div className="space-y-4">
-                <h1 className="text-4xl font-bold text-foreground">Maghreb Steel</h1>
-                <h2 className="text-2xl font-bold text-foreground leading-tight">
-                  Gérez vos outils avec <span className="text-primary">l'IA</span>
-                </h2>
-                <p className="text-lg text-muted-foreground leading-relaxed">
-                  Plateforme intelligente pour cataloguer et dimensionner vos outils industriels.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 gap-4">
-                <div className="flex items-start space-x-3">
-                  <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Wrench className="w-4 h-4 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground">Catalogue d'Outils</h3>
-                    <p className="text-sm text-muted-foreground">Inventaire complet de vos équipements</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-3">
-                  <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Ruler className="w-4 h-4 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground">Mesures Précises</h3>
-                    <p className="text-sm text-muted-foreground">Dimensions automatiques avec IA</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-3">
-                  <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Bot className="w-4 h-4 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground">Intelligence Artificielle</h3>
-                    <p className="text-sm text-muted-foreground">Reconnaissance et analyse automatique</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-col justify-center">
-            <div className="w-full max-w-md mx-auto space-y-6 pt-20 lg:pt-0">
-              <div className="space-y-6">
-                {!isSignUp ? <SigninForm /> : <SignUpForm />}
-
-                <div className="text-center space-y-4">
-                  <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground">
-                    {!isSignUp ? <span>Nouveau sur la plateforme ?</span> : <span>Vous avez déjà un compte ?</span>}
-                    <Button
-                      variant="link"
-                      className="text-primary hover:text-primary/80 p-0 h-auto font-medium"
-                      onClick={() => setIsSignUp((p) => !p)}
-                    >
-                      {!isSignUp ? "Créer un compte" : "Se connecter"}
-                    </Button>
-                  </div>
-
-             
-                </div>
-              </div>
-            </div>
-          </div>
+      <section className="flex min-h-svh flex-col overflow-y-auto px-4 py-6 sm:px-8 lg:h-svh lg:px-12 xl:px-20">
+        <div className="flex items-center gap-3 pr-14 lg:hidden"><div className="flex h-11 w-11 items-center justify-center rounded-xl border bg-white shadow-sm"><Image src="/logo.png" alt="Nextronic" width={38} height={38} className="h-9 w-9 object-contain" priority /></div><div><p className="font-semibold">Nextronic</p><p className="text-xs text-muted-foreground">Contrôle industriel</p></div></div>
+        <div className="my-auto w-full py-8 sm:mx-auto sm:max-w-[460px] lg:py-10">
+          <div className="mb-6 space-y-2"><p className="text-sm font-medium text-teal-700 dark:text-teal-400">Espace sécurisé</p><h2 className="text-3xl font-bold tracking-tight">{isSignUp ? "Créer votre compte" : "Bienvenue"}</h2><p className="text-sm text-muted-foreground">{isSignUp ? "Renseignez vos informations pour rejoindre la plateforme." : "Connectez-vous pour accéder à votre espace de supervision."}</p></div>
+          <div className="overflow-hidden rounded-2xl border bg-card shadow-xl shadow-slate-200/60 dark:shadow-black/20">{isSignUp ? <SignUpForm /> : <SigninForm />}</div>
+          <div className="mt-5 flex items-center justify-center gap-2 text-sm text-muted-foreground"><span>{isSignUp ? "Vous avez déjà un compte ?" : "Nouveau sur la plateforme ?"}</span><Button variant="link" className="h-auto p-0 font-semibold" onClick={() => setIsSignUp((value) => !value)}>{isSignUp ? "Se connecter" : "Créer un compte"}</Button></div>
+          <div className="mt-8 flex items-center justify-center gap-2 text-xs text-muted-foreground"><ShieldCheck className="h-4 w-4 text-emerald-600" /> Connexion chiffrée et données protégées</div>
         </div>
-      </div>
+      </section>
     </div>
-  )
+  </main>
 }

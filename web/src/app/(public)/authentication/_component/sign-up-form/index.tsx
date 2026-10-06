@@ -57,7 +57,7 @@ export default function SignUpForm() {
   }
 
   return (
-    <Card className="border-0 shadow-xl bg-card">
+    <Card className="border-0 bg-transparent shadow-none">
       <CardHeader className="space-y-2 text-center">
         <CardTitle className="text-2xl font-bold">Créer un compte</CardTitle>
         <CardDescription className="text-muted-foreground">Rejoignez votre équipe sur ImageViz Pro</CardDescription>
@@ -65,37 +65,34 @@ export default function SignUpForm() {
       <CardContent className="space-y-4">
         <form action={handleSubmit} className="space-y-4">
           <div className="space-y-4">
-            <div className="relative">
-              <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <div>
               <FormInput
                 label="Nom complet"
                 name="name"
                 placeholder="Mohamed Saber"
-                className="pl-10"
+                icon={<User className="h-4 w-4 text-muted-foreground" />}
                 errors={fieldErrors.name}
               />
             </div>
 
-            <div className="relative">
-              <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <div>
               <FormInput
                 label="Adresse email professionnelle"
                 type="email"
                 name="email"
                 placeholder="nom@entreprise.com"
-                className="pl-10"
+                icon={<Mail className="h-4 w-4 text-muted-foreground" />}
                 errors={fieldErrors.email}
               />
             </div>
 
-            <div className="relative">
-              <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <div>
               <FormInput
                 label="Mot de passe"
                 name="password"
                 type="password"
                 placeholder="••••••••"
-                className="pl-10"
+                icon={<Lock className="h-4 w-4 text-muted-foreground" />}
                 errors={fieldErrors.password}
               />
             </div>
