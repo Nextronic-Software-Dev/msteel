@@ -7,7 +7,7 @@ import { RefreshCw } from 'lucide-react'
 import { ImageRow } from "@/components/image-row"
 import { Toaster } from "sonner"
 import { ExportDialog } from "./export-dialog"
-import { getImagesPage } from "@/lib/action"
+import { getImagesPage, type ImageFilters } from "@/lib/action"
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from "@/components/ui/pagination"
 
 interface ImageData {
@@ -23,9 +23,10 @@ interface ImageData {
 
 interface ImageTableProps {
   initialData: ImageData
+  filters?: ImageFilters
 }
 
-export function ImageTable({ initialData }: ImageTableProps) {
+export function ImageTable({ initialData, filters = {} }: ImageTableProps) {
   const [imageData, setImageData] = useState<ImageData>(initialData)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [lastFetchTime, setLastFetchTime] = useState<number>(Date.now())
@@ -44,7 +45,7 @@ export function ImageTable({ initialData }: ImageTableProps) {
   const fetchImages = useCallback(async (requestedPage = currentPage) => {
     setIsRefreshing(true)
     try {
-      const newData = await getImagesPage(requestedPage, itemsPerPage)
+      const newData = await getImagesPage(requestedPage, itemsPerPage, filters)
       setImageData(newData)
       setCurrentPage(newData.page)
       setLastFetchTime(Date.now())
@@ -59,7 +60,7 @@ export function ImageTable({ initialData }: ImageTableProps) {
     } finally {
       setIsRefreshing(false)
     }
-  }, [currentPage])
+  }, [currentPage, filters])
 
   const startInterval = useCallback(() => {
     if (intervalRef.current) {

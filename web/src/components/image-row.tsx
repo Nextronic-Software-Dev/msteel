@@ -7,7 +7,7 @@ import { TableCell, TableRow } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Eye, Save, Loader2, Check } from "lucide-react"
+import { Eye, Save, Loader2, Check, FileDown } from "lucide-react"
 import { toast } from "sonner"
 import { updateCustomId, deleteImage, updateImageDimensions } from "@/lib/action"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -262,6 +262,14 @@ export function ImageRow({ image, onUpdate, onDelete, onDialogOpenChange }: Imag
 
         <TableCell className="text-right sticky right-0 bg-background border-l">
           <div className="flex items-center justify-end space-x-1">
+            {currentImage.id && (
+              <Button variant="ghost" size="sm" className="shrink-0" asChild title="Télécharger la fiche PDF">
+                <a href={`/api/images/${currentImage.id}/pdf`} download>
+                  <FileDown className="h-4 w-4" />
+                  <span className="sr-only">Télécharger la fiche PDF</span>
+                </a>
+              </Button>
+            )}
             <Dialog open={isImageModalOpen} onOpenChange={handleDialogOpenChange}>
               <DialogTrigger asChild>
                 <Button variant="ghost" size="sm" className="shrink-0">

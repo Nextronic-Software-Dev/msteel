@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { Prisma } from "@prisma/client"
 import { db } from "./db"
 export async function updateCustomId(imagePath: string, customId: string) {
   try {
@@ -84,17 +85,37 @@ export async function getImages() {
 const DEFAULT_PAGE_SIZE = 10
 const MAX_PAGE_SIZE = 100
 
-export async function getImagesPage(page = 1, pageSize = DEFAULT_PAGE_SIZE) {
+export type ImageFilters = {
+  query?: string
+  status?: "all" | "identified" | "unidentified" | "sent" | "ready"
+}
+
+export async function getImagesPage(page = 1, pageSize = DEFAULT_PAGE_SIZE, filters: ImageFilters = {}) {
   try {
     const safePage = Math.max(1, Math.floor(page) || 1)
     const safePageSize = Math.min(MAX_PAGE_SIZE, Math.max(1, Math.floor(pageSize) || DEFAULT_PAGE_SIZE))
+    const query = filters.query?.trim()
+    const where: Prisma.ProcessedImageWhereInput = {}
+    if (query) {
+      const numericId = Number.parseInt(query, 10)
+      where.OR = [
+        { customId: { contains: query, mode: "insensitive" } },
+        { imagePath: { contains: query, mode: "insensitive" } },
+        ...(Number.isFinite(numericId) ? [{ id: numericId }] : []),
+      ]
+    }
+    if (filters.status === "identified") where.customId = { not: null }
+    if (filters.status === "unidentified") where.customId = null
+    if (filters.status === "sent") where.sent = true
+    if (filters.status === "ready") Object.assign(where, { sent: false, customId: { not: null } })
     const [images, total] = await db.$transaction([
       db.processedImage.findMany({
+        where,
         orderBy: { createdAt: "desc" },
         skip: (safePage - 1) * safePageSize,
         take: safePageSize,
       }),
-      db.processedImage.count(),
+      db.processedImage.count({ where }),
     ])
 
     return {
