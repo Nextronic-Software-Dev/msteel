@@ -7,6 +7,7 @@ import { RefreshCw } from 'lucide-react'
 import { ImageRow } from "@/components/image-row"
 import { Toaster } from "sonner"
 import { ExportDialog } from "./export-dialog"
+import { ImportIdsDialog } from "./import-ids-dialog"
 import { getImagesPage, type ImageFilters } from "@/lib/action"
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from "@/components/ui/pagination"
 
@@ -151,8 +152,8 @@ export function ImageTable({ initialData, filters = {} }: ImageTableProps) {
 
   return (
     <>
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex gap-2">
+      <div className="flex flex-wrap gap-3 justify-between items-center mb-4">
+        <div className="flex flex-wrap gap-2">
           <Button
             disabled={isRefreshing}
             onClick={() => fetchImages()}
@@ -163,6 +164,7 @@ export function ImageTable({ initialData, filters = {} }: ImageTableProps) {
             Actualiser
           </Button>
           <ExportDialog images={images} />
+          <ImportIdsDialog onImported={() => fetchImages()} onOpenChange={handleDialogOpenChange} />
         </div>
         <div className="text-sm text-muted-foreground flex items-center gap-2">
           <span>Dernière mise à jour: {new Date(lastFetchTime).toLocaleTimeString()}</span>
