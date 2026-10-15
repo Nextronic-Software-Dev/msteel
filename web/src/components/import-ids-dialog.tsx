@@ -191,7 +191,7 @@ export function ImportIdsDialog({ onImported, onOpenChange }: { onImported: () =
                 </select>
               </div>
             </div>
-            <p className="text-xs text-muted-foreground">Les dates ISO avec un fuseau explicite conservent ce fuseau. Un écart peut être positif ou négatif.</p>
+            <p className="text-xs text-muted-foreground">Les dates ISO avec un fuseau explicite conservent ce fuseau. L’événement plateforme doit être enregistré après l’heure machine (écart positif).</p>
             <div className="overflow-x-auto rounded-md border">
               <Table>
                 <TableHeader><TableRow><TableHead>Ligne</TableHead><TableHead>N°Lot</TableHead><TableHead>Date / heure du fichier (extrait)</TableHead></TableRow></TableHeader>

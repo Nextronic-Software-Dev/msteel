@@ -42,25 +42,28 @@ export function matchMachineRecords(
   const eventTimes = platform.map(event => Date.parse(event.createdAt))
   if ([...times, ...eventTimes].some(time => !Number.isFinite(time))) throw new Error("Date invalide.")
   const tolerance = toleranceSeconds * 1000
+  // The machine records a part before the platform event, so only later events qualify.
+  const gap = (i: number, j: number) => eventTimes[j] - times[i]
+  const fits = (delta: number) => delta >= 0 && delta <= tolerance
   // One extra match always outweighs all possible time differences (integer ms).
   const reward = Math.min(n, m) * tolerance + 1
   const forward = new Float64Array((n + 1) * width)
   const backward = new Float64Array((n + 1) * width)
   for (let i = 1; i <= n; i++) {
     for (let j = 1; j <= m; j++) {
-      const delta = Math.abs(times[i - 1] - eventTimes[j - 1])
+      const delta = gap(i - 1, j - 1)
       forward[i * width + j] = Math.max(
         forward[(i - 1) * width + j], forward[i * width + j - 1],
-        delta <= tolerance ? forward[(i - 1) * width + j - 1] + reward - delta : -Infinity,
+        fits(delta) ? forward[(i - 1) * width + j - 1] + reward - delta : -Infinity,
       )
     }
   }
   for (let i = n - 1; i >= 0; i--) {
     for (let j = m - 1; j >= 0; j--) {
-      const delta = Math.abs(times[i] - eventTimes[j])
+      const delta = gap(i, j)
       backward[i * width + j] = Math.max(
         backward[(i + 1) * width + j], backward[i * width + j + 1],
-        delta <= tolerance ? backward[(i + 1) * width + j + 1] + reward - delta : -Infinity,
+        fits(delta) ? backward[(i + 1) * width + j + 1] + reward - delta : -Infinity,
       )
     }
   }
@@ -80,8 +83,8 @@ export function matchMachineRecords(
     for (let j = 0; j <= m; j++) {
       if (forward[i * width + j] + backward[(i + 1) * width + j] === optimum) canSkip = true
       if (j < m) {
-        const delta = Math.abs(times[i] - eventTimes[j])
-        if (delta <= tolerance && forward[i * width + j] + reward - delta + backward[(i + 1) * width + j + 1] === optimum) {
+        const delta = gap(i, j)
+        if (fits(delta) && forward[i * width + j] + reward - delta + backward[(i + 1) * width + j + 1] === optimum) {
           candidates.push(j)
         }
       }

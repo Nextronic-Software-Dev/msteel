@@ -26,7 +26,7 @@ async function buildPreview(client: Prisma.TransactionClient, input: ImportReque
   const limit = Math.floor(MAX_MATCH_CELLS / (input.records.length + 1)) - 1
   // Include identified/sent events: removing them would shift the sequence.
   const events = await client.processedImage.findMany({
-    where: { createdAt: { gte: new Date(Math.min(...times) - tolerance), lte: new Date(Math.max(...times) + tolerance) } },
+    where: { createdAt: { gte: new Date(Math.min(...times)), lte: new Date(Math.max(...times) + tolerance) } },
     orderBy: [{ createdAt: "asc" }, { id: "asc" }],
     take: limit + 1,
     select: { id: true, createdAt: true, updatedAt: true, customId: true, sent: true },

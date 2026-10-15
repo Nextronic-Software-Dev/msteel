@@ -18,20 +18,21 @@ const time = seconds => new Date(base + seconds * 1000).toISOString()
 const record = (seconds, row = 2, customId = `LOT-${row}`) => ({ row, customId, timestamp: time(seconds) })
 const event = (seconds, id = 1, extra = {}) => ({ id, createdAt: time(seconds), updatedAt: time(100), customId: null, sent: false, ...extra })
 
-test("sorts reverse inputs and tolerates drift in either direction", () => {
-  const result = matchMachineRecords([record(31.2, 5), record(19.9, 4), record(11.3, 3), record(0.5)], [event(30, 4), event(20, 3), event(10, 2), event(0)], 3)
+test("sorts reverse inputs and only matches events after the machine time", () => {
+  const result = matchMachineRecords([record(29.5, 5), record(18.9, 4), record(9.3, 3), record(-0.5)], [event(30, 4), event(20, 3), event(10, 2), event(0)], 3)
   assert.deepEqual(result.map(item => [item.row, item.eventId, item.status]), [[2, 1, "ready"], [3, 2, "ready"], [4, 3, "ready"], [5, 4, "ready"]])
-  assert.equal(result[0].differenceSeconds, -0.5)
-  assert.equal(result[2].differenceSeconds, 0.1)
+  assert.equal(result[0].differenceSeconds, 0.5)
+  assert.equal(result[2].differenceSeconds, 1.1)
+  assert.equal(matchMachineRecords([record(1)], [event(0)], 5)[0].status, "unmatched")
 })
 
 test("global alignment avoids a greedy match stealing the next event", () => {
-  const result = matchMachineRecords([record(6), record(10, 3)], [event(0), event(10, 2)], 6)
+  const result = matchMachineRecords([record(0), record(6, 3)], [event(6), event(10, 2)], 6)
   assert.deepEqual(result.map(item => item.eventId), [1, 2])
 })
 
 test("skips missing events without shifting later IDs", () => {
-  const result = matchMachineRecords([record(1), record(30, 3), record(61, 4)], [event(0), event(60, 2)], 2)
+  const result = matchMachineRecords([record(-1), record(30, 3), record(59, 4)], [event(0), event(60, 2)], 2)
   assert.deepEqual(result.map(item => item.status), ["ready", "unmatched", "ready"])
   assert.equal(result[2].eventId, 2)
 })
@@ -39,12 +40,12 @@ test("skips missing events without shifting later IDs", () => {
 test("tolerance boundary is inclusive and accepts midnight crossover", () => {
   const result = matchMachineRecords([{ ...record(0), timestamp: "2026-10-15T23:59:59Z" }], [{ ...event(0), createdAt: "2026-10-16T00:00:01Z" }], 2)
   assert.equal(result[0].status, "ready")
-  assert.equal(matchMachineRecords([record(2.001)], [event(0)], 2)[0].status, "unmatched")
+  assert.equal(matchMachineRecords([record(-2.001)], [event(0)], 2)[0].status, "unmatched")
 })
 
 test("flags equal-distance alternatives and competition for the same event", () => {
-  assert.equal(matchMachineRecords([record(5)], [event(0), event(10, 2)], 5)[0].status, "ambiguous")
-  assert.deepEqual(matchMachineRecords([record(0), record(10, 3)], [event(5)], 5).map(item => item.status), ["ambiguous", "ambiguous"])
+  assert.equal(matchMachineRecords([record(0)], [event(5), event(5, 2)], 5)[0].status, "ambiguous")
+  assert.deepEqual(matchMachineRecords([record(0), record(0, 3)], [event(5)], 5).map(item => item.status), ["ambiguous", "ambiguous"])
 })
 
 test("equal timestamps use stable source row and event ID order", () => {
@@ -87,8 +88,8 @@ test("alignment and ambiguity agree with exhaustive ordered assignments", () => 
       }
       enumerate(i + 1, start, [...assignment, null], count, cost)
       for (let j = start; j < platform.length; j++) {
-        const delta = Math.abs(machine[i] - platform[j])
-        if (delta <= tolerance) enumerate(i + 1, j + 1, [...assignment, j + 1], count + 1, cost + delta)
+        const delta = platform[j] - machine[i]
+        if (delta >= 0 && delta <= tolerance) enumerate(i + 1, j + 1, [...assignment, j + 1], count + 1, cost + delta)
       }
     }
     enumerate(0, 0, [], 0, 0)
@@ -240,7 +241,7 @@ test("server rejects malformed input and repeated source row numbers", async () 
 
 test("save writes only ready IDs, preserves existing IDs, and reimport is idempotent", async () => {
   databaseRows = [dbEvent(0), dbEvent(10, 2, { customId: "MANUAL" }), dbEvent(20, 3, { sent: true })]
-  const input = { records: [record(1), record(11, 3), record(21, 4)], toleranceSeconds: 5 }
+  const input = { records: [record(-1), record(9, 3), record(19, 4)], toleranceSeconds: 5 }
   const result = await previewIdImport(input)
   assert.equal(result.success, true)
   assert.deepEqual(result.preview.matches.map(match => match.status), ["ready", "conflict", "sent"])
