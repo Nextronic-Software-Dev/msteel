@@ -12,7 +12,7 @@ require.extensions[".ts"] = (module, filename) => {
   module._compile(source, filename)
 }
 const { matchMachineRecords, parseMachineTime } = require("../src/lib/id-import.ts")
-const { readMachineFile, guessColumns, recordsFromSheet } = require("../src/lib/machine-file.ts")
+const { readMachineFile, guessColumns, detectColumns, recordsFromSheet } = require("../src/lib/machine-file.ts")
 const base = Date.parse("2026-10-15T08:00:00Z")
 const time = seconds => new Date(base + seconds * 1000).toISOString()
 const record = (seconds, row = 2, customId = `LOT-${row}`) => ({ row, customId, timestamp: time(seconds) })
@@ -275,4 +275,14 @@ test("save rolls back the entire batch if any event becomes unavailable", async 
   failUpdateId = null
   assert.equal(saved.success, false)
   assert.deepEqual(databaseRows.map(row => row.customId), [null, null])
+})
+
+test("detectColumns finds columns from contents when headers are unknown", () => {
+  const sheet = { name: "S", headers: ["Ref", "Quand", "Poste"], rows: [
+    { row: 2, cells: ["A001", "25/03/2026 08:15:00", "P1"] },
+    { row: 3, cells: ["A002", "26/03/2026 09:00:00", "P2"] },
+  ] }
+  assert.deepEqual(detectColumns(sheet), { id: 0, date: 1, time: -1, dateOrder: "dmy" })
+  const split = { name: "S", headers: ["Code", "Jour", "Heure2"], rows: [{ row: 2, cells: ["X", "03/25/2026", "08:15:00"] }] }
+  assert.deepEqual(detectColumns(split), { id: 0, date: 1, time: 2, dateOrder: "mdy" })
 })

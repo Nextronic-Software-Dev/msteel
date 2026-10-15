@@ -61,6 +61,38 @@ export function guessColumns(headers: string[]) {
   return { id, date, time }
 }
 
+const dateTimePattern = /^(\d{4}-\d{2}-\d{2}|\d{1,2}[/.\-]\d{1,2}[/.\-]\d{4})[ T]\d{1,2}:\d{2}/
+const datePattern = /^(\d{4}-\d{2}-\d{2}|\d{1,2}[/.\-]\d{1,2}[/.\-]\d{4})$/
+const timePattern = /^\d{1,2}:\d{2}(:\d{2})?([.,]\d{1,3})?$/
+
+// Picks columns from headers first, then from cell contents, so files import without manual mapping.
+export function detectColumns(sheet: MachineSheet): Omit<ColumnMapping, "zone"> {
+  let { id, date, time } = guessColumns(sheet.headers)
+  const sample = sheet.rows.slice(0, 50)
+  const matches = (column: number, pattern: RegExp) => {
+    const values = sample.map(row => row.cells[column]?.trim()).filter(Boolean)
+    return values.length > 0 && values.every(value => pattern.test(value))
+  }
+  const columns = sheet.headers.map((_, index) => index)
+  if (date < 0) date = columns.find(index => matches(index, dateTimePattern)) ?? -1
+  if (date < 0) {
+    date = columns.find(index => matches(index, datePattern)) ?? -1
+    if (date >= 0 && time < 0) time = columns.find(index => index !== date && matches(index, timePattern)) ?? -1
+  }
+  if (date >= 0 && time >= 0 && matches(date, dateTimePattern)) time = -1
+  if (id < 0) {
+    id = columns.find(index => index !== date && index !== time && sample.some(row => row.cells[index]?.trim())) ?? -1
+  }
+  // Regional dates: a first part above 12 means day first, a second part above 12 means month first.
+  let dateOrder: "dmy" | "mdy" = "dmy"
+  if (date >= 0) for (const row of sheet.rows) {
+    const parts = row.cells[date]?.trim().match(/^(\d{1,2})[/.\-](\d{1,2})[/.\-]\d{4}/)
+    if (parts && Number(parts[1]) > 12) { dateOrder = "dmy"; break }
+    if (parts && Number(parts[2]) > 12) { dateOrder = "mdy"; break }
+  }
+  return { id, date, time, dateOrder }
+}
+
 export function recordsFromSheet(sheet: MachineSheet, mapping: ColumnMapping): { records: MachineRecord[]; errors: string[] } {
   const records: MachineRecord[] = [], errors: string[] = []
   if (mapping.id < 0 || mapping.date < 0 || mapping.id === mapping.date || mapping.time === mapping.id || mapping.time === mapping.date) {

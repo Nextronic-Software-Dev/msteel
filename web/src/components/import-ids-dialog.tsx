@@ -26,6 +26,7 @@ export function ImportIdsDialog({ onImported, onOpenChange }: { onImported: () =
   const [sheetIndex, setSheetIndex] = useState(0)
   const [mapping, setMapping] = useState<ColumnMapping>(initialMapping)
   const [tolerance, setTolerance] = useState("10")
+  const [advanced, setAdvanced] = useState(false)
   const [errors, setErrors] = useState<string[]>([])
   const [preview, setPreview] = useState<ImportPreview | null>(null)
   const [request, setRequest] = useState<ImportRequest | null>(null)
@@ -48,21 +49,35 @@ export function ImportIdsDialog({ onImported, onOpenChange }: { onImported: () =
     if (file.size > 5 * 1024 * 1024) { setErrors(["Le fichier doit faire moins de 5 Mo."]); return }
     if (!/\.(csv|tsv|txt|xlsx|xls)$/i.test(file.name)) { setErrors(["Choisissez un fichier CSV, TSV ou Excel (.xlsx, .xls)."]); return }
     setBusy(true)
+    let detected: { sheet: MachineSheet; mapping: ColumnMapping } | null = null
     try {
-      const { readMachineFile, guessColumns } = await import("@/lib/machine-file")
+      const { readMachineFile } = await import("@/lib/machine-file")
       const parsed = readMachineFile(await file.arrayBuffer()).filter(item => item.headers.length)
       if (!parsed.length) throw new Error("Le fichier est vide.")
       setSheets(parsed)
       setSheetIndex(0)
-      setMapping(current => ({ ...current, ...guessColumns(parsed[0].headers) }))
+      detected = { sheet: parsed[0], mapping: await detect(parsed[0]) }
     } catch (error) {
       setErrors([error instanceof Error ? error.message : "Impossible de lire le fichier."])
     } finally { setBusy(false) }
+    if (detected) await prepare(detected.sheet, detected.mapping)
   }
 
-  const prepare = async () => {
-    if (!sheet) return
+  const detect = async (target: MachineSheet) => {
+    const { detectColumns } = await import("@/lib/machine-file")
+    const next = { ...mapping, ...detectColumns(target) }
+    setMapping(next)
+    setAdvanced(next.id < 0 || next.date < 0)
+    return next
+  }
+
+  const prepare = async (target = sheet, columns = mapping) => {
+    if (!target) return
     invalidate()
+    if (columns.id < 0 || columns.date < 0) {
+      setErrors(["Colonnes N°Lot ou date introuvables. Choisissez-les dans les options avancées."])
+      return
+    }
     const seconds = Number(tolerance)
     if (!tolerance.trim() || !Number.isInteger(seconds) || seconds < 0 || seconds > 300) {
       setErrors(["La tolérance doit être un nombre entier entre 0 et 300 secondes."])
@@ -71,7 +86,7 @@ export function ImportIdsDialog({ onImported, onOpenChange }: { onImported: () =
     setBusy(true)
     try {
       const { recordsFromSheet } = await import("@/lib/machine-file")
-      const parsed = recordsFromSheet(sheet, mapping)
+      const parsed = recordsFromSheet(target, columns)
       if (parsed.errors.length) { setErrors(parsed.errors); return }
       const input = { records: parsed.records, toleranceSeconds: seconds }
       const result = await previewIdImport(input)
@@ -137,11 +152,18 @@ export function ImportIdsDialog({ onImported, onOpenChange }: { onImported: () =
               <Label htmlFor="import-sheet">Feuille</Label>
               <select id="import-sheet" className={selectClass} value={sheetIndex} onChange={async event => {
                 const index = Number(event.target.value)
-                const { guessColumns } = await import("@/lib/machine-file")
                 setSheetIndex(index)
-                changeMapping(guessColumns(sheets[index].headers))
+                await prepare(sheets[index], await detect(sheets[index]))
               }}>{sheets.map((item, index) => <option key={index} value={index}>{item.name}</option>)}</select>
             </div>}
+            <p className="text-sm text-muted-foreground">
+              Colonnes détectées : N°Lot = <strong>{sheet.headers[mapping.id] ?? "?"}</strong>,
+              date = <strong>{sheet.headers[mapping.date] ?? "?"}</strong>
+              {mapping.time >= 0 && <>, heure = <strong>{sheet.headers[mapping.time]}</strong></>}
+            </p>
+            <details open={advanced} onToggle={event => setAdvanced(event.currentTarget.open)} className="rounded-md border p-3">
+            <summary className="cursor-pointer text-sm font-medium">Options avancées</summary>
+            <div className="mt-3 space-y-4">
             <div className="grid gap-3 sm:grid-cols-3">
               {columns("Colonne ID (N°Lot)", "id")}
               {columns("Colonne date / horodatage", "date")}
@@ -173,7 +195,9 @@ export function ImportIdsDialog({ onImported, onOpenChange }: { onImported: () =
                 </TableRow>)}</TableBody>
               </Table>
             </div>
-            <Button type="button" variant="outline" onClick={prepare} disabled={mapping.id < 0 || mapping.date < 0}>Calculer les correspondances ({sheet.rows.length} lignes)</Button>
+            <Button type="button" variant="outline" onClick={() => void prepare()} disabled={mapping.id < 0 || mapping.date < 0}>Recalculer les correspondances ({sheet.rows.length} lignes)</Button>
+            </div>
+            </details>
           </>}
         </fieldset>
         {busy && <p role="status" className="flex items-center gap-2 text-sm"><Loader2 className="h-4 w-4 animate-spin" />Traitement en cours…</p>}
