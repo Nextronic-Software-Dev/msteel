@@ -9,7 +9,7 @@ import { db } from "./db"
 import { MAX_IMPORT_ROWS, MAX_MATCH_CELLS, matchMachineRecords, type ImportRequest, type ImportPreview } from "./id-import"
 
 const requestSchema = z.object({
-  toleranceSeconds: z.number().int().min(0).max(300),
+  toleranceSeconds: z.number().int().min(0).max(900),
   records: z.array(z.object({
     row: z.number().int().positive(),
     customId: z.string().trim().min(1).max(200),

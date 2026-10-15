@@ -29,8 +29,8 @@ export function matchMachineRecords(
   records: MachineRecord[], events: ImportEvent[], toleranceSeconds: number,
   usedIds: { id: number; customId: string | null }[] = [],
 ): ImportMatch[] {
-  if (!Number.isInteger(toleranceSeconds) || toleranceSeconds < 0 || toleranceSeconds > 300) {
-    throw new Error("La tolérance doit être comprise entre 0 et 300 secondes.")
+  if (!Number.isInteger(toleranceSeconds) || toleranceSeconds < 0 || toleranceSeconds > 900) {
+    throw new Error("La tolérance doit être comprise entre 0 et 900 secondes (15 minutes).")
   }
   const machine = [...records].sort((a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp) || a.row - b.row)
   const platform = [...events].sort((a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt) || a.id - b.id)

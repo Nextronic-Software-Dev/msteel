@@ -79,8 +79,8 @@ export function ImportIdsDialog({ onImported, onOpenChange }: { onImported: () =
       return
     }
     const seconds = Number(tolerance)
-    if (!tolerance.trim() || !Number.isInteger(seconds) || seconds < 0 || seconds > 300) {
-      setErrors(["La tolérance doit être un nombre entier entre 0 et 300 secondes."])
+    if (!tolerance.trim() || !Number.isInteger(seconds) || seconds < 0 || seconds > 900) {
+      setErrors(["La tolérance doit être un nombre entier entre 0 et 900 secondes (15 minutes)."])
       return
     }
     setBusy(true)
@@ -161,6 +161,22 @@ export function ImportIdsDialog({ onImported, onOpenChange }: { onImported: () =
               date = <strong>{sheet.headers[mapping.date] ?? "?"}</strong>
               {mapping.time >= 0 && <>, heure = <strong>{sheet.headers[mapping.time]}</strong></>}
             </p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1">
+                <Label htmlFor="import-date-order">Format des dates</Label>
+                <select id="import-date-order" className={selectClass} value={mapping.dateOrder} onChange={event => {
+                  const next = { ...mapping, dateOrder: event.target.value as "dmy" | "mdy" }
+                  setMapping(next)
+                  void prepare(sheet, next)
+                }}>
+                  <option value="dmy">Jour / Mois / Année</option><option value="mdy">Mois / Jour / Année</option>
+                </select>
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="import-tolerance">Écart maximum (secondes, 900 = 15 min max)</Label>
+                <Input id="import-tolerance" type="number" min={0} max={900} step={1} value={tolerance} onChange={event => { setTolerance(event.target.value); invalidate() }} onBlur={() => { if (!preview) void prepare() }} />
+              </div>
+            </div>
             <details open={advanced} onToggle={event => setAdvanced(event.currentTarget.open)} className="rounded-md border p-3">
             <summary className="cursor-pointer text-sm font-medium">Options avancées</summary>
             <div className="mt-3 space-y-4">
@@ -168,16 +184,6 @@ export function ImportIdsDialog({ onImported, onOpenChange }: { onImported: () =
               {columns("Colonne ID (N°Lot)", "id")}
               {columns("Colonne date / horodatage", "date")}
               {columns("Colonne heure (si séparée)", "time")}
-              <div className="space-y-1">
-                <Label htmlFor="import-tolerance">Écart maximum (secondes)</Label>
-                <Input id="import-tolerance" type="number" min={0} max={300} step={1} value={tolerance} onChange={event => { setTolerance(event.target.value); invalidate() }} />
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor="import-date-order">Format des dates</Label>
-                <select id="import-date-order" className={selectClass} value={mapping.dateOrder} onChange={event => changeMapping({ dateOrder: event.target.value as "dmy" | "mdy" })}>
-                  <option value="dmy">Jour / Mois / Année</option><option value="mdy">Mois / Jour / Année</option>
-                </select>
-              </div>
               <div className="space-y-1">
                 <Label htmlFor="import-zone">Fuseau des heures du fichier</Label>
                 <select id="import-zone" className={selectClass} value={mapping.zone} onChange={event => changeMapping({ zone: event.target.value as "local" | "utc" })}>

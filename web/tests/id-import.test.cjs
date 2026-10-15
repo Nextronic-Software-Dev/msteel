@@ -233,7 +233,7 @@ test("server rejects malformed input and repeated source row numbers", async () 
     { records: [], toleranceSeconds: 10 },
     { records: [record(0), record(10)], toleranceSeconds: 10 },
     { records: [{ ...record(0), timestamp: "bad" }], toleranceSeconds: 10 },
-    { records: [record(0)], toleranceSeconds: 301 },
+    { records: [record(0)], toleranceSeconds: 901 },
   ]) assert.equal((await previewIdImport(input)).success, false)
   assert.equal(transactionCalls, 0)
 })
