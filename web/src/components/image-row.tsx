@@ -20,6 +20,7 @@ interface ImageRowProps {
     imagePath: string
     createdAt?: string 
     customId?: string | null
+    sent?: boolean
     l1: number
     l2: number
     l3: number
@@ -230,6 +231,7 @@ export function ImageRow({ image, onUpdate, onDelete, onDialogOpenChange }: Imag
           <Badge variant={currentImage.customId ? "default" : "outline"} className="text-xs">
             {currentImage.customId ? "ID Assigné" : "Nouveau"}
           </Badge>
+          {currentImage.sent && <Badge variant="secondary" className="ml-1 text-xs">Envoyée</Badge>}
         </TableCell>
 
         <TableCell onClick={handleInputClick}>

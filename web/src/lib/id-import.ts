@@ -10,7 +10,7 @@ export type ImportEvent = {
   customId: string | null
   sent: boolean
 }
-export type ImportStatus = "ready" | "unmatched" | "ambiguous" | "existing" | "conflict" | "duplicate" | "sent"
+export type ImportStatus = "ready" | "unmatched" | "ambiguous" | "existing" | "conflict" | "duplicate"
 export type ImportMatch = MachineRecord & {
   status: ImportStatus
   eventId?: number
@@ -96,8 +96,7 @@ export function matchMachineRecords(
     const duplicate = Array.from(owners.get(record.customId) || []).some(id => id !== event.id)
     const status: ImportStatus = duplicate ? "duplicate"
       : event.customId === record.customId ? "existing"
-      : event.customId ? "conflict"
-      : event.sent ? "sent" : "ready"
+      : event.customId ? "conflict" : "ready"
     return {
       ...record, status, eventId: event.id, eventTime: event.createdAt,
       differenceSeconds: (Date.parse(event.createdAt) - times[i]) / 1000,

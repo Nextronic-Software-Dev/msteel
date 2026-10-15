@@ -71,7 +71,7 @@ export async function applyIdImport(request: ImportRequest, fingerprint: string)
       const ready = current.matches.filter(match => match.status === "ready")
       for (const match of ready) {
         const result = await client.processedImage.updateMany({
-          where: { id: match.eventId!, sent: false, OR: [{ customId: null }, { customId: "" }] },
+          where: { id: match.eventId!, OR: [{ customId: null }, { customId: "" }] },
           data: { customId: match.customId },
         })
         if (result.count !== 1) throw new Error("Un ID a été modifié. Recalculez l’aperçu avant d’importer.")

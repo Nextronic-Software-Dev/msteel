@@ -14,7 +14,7 @@ import type { ColumnMapping, MachineSheet } from "@/lib/machine-file"
 
 const statusLabels: Record<ImportStatus, string> = {
   ready: "À importer", unmatched: "Aucun événement dans la tolérance", ambiguous: "Correspondance ambiguë",
-  existing: "ID déjà renseigné", conflict: "Autre ID déjà renseigné", duplicate: "N°Lot en double ou déjà utilisé", sent: "Événement déjà envoyé",
+  existing: "ID déjà renseigné", conflict: "Autre ID déjà renseigné", duplicate: "N°Lot en double ou déjà utilisé",
 }
 const initialMapping: ColumnMapping = { id: -1, date: -1, time: -1, dateOrder: "dmy", zone: "local" }
 const selectClass = "h-10 w-full rounded-md border bg-background px-3 text-sm"

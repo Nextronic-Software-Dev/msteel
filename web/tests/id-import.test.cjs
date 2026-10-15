@@ -52,11 +52,11 @@ test("equal timestamps use stable source row and event ID order", () => {
   assert.deepEqual(matchMachineRecords([record(0, 3), record(0)], [event(0, 2), event(0)], 0).map(item => item.eventId), [1, 2])
 })
 
-test("preserves existing IDs and reserves sent/occupied events in sequence", () => {
+test("preserves existing IDs and fills blank IDs on sent events", () => {
   const result = matchMachineRecords([record(0), record(10, 3), record(20, 4), record(30, 5)], [
     event(0, 1, { customId: "LOT-2" }), event(10, 2, { customId: "MANUAL" }), event(20, 3, { sent: true }), event(30, 4),
   ], 10)
-  assert.deepEqual(result.map(item => item.status), ["existing", "conflict", "sent", "ready"])
+  assert.deepEqual(result.map(item => item.status), ["existing", "conflict", "ready", "ready"])
   assert.equal(result[3].eventId, 4)
 })
 
@@ -190,7 +190,7 @@ const fakeDb = {
       },
       updateMany: async args => {
         const row = draft.find(row => row.id === args.where.id)
-        if (!row || row.customId || row.sent || row.id === failUpdateId) return { count: 0 }
+        if (!row || row.customId || row.id === failUpdateId) return { count: 0 }
         row.customId = args.data.customId
         return { count: 1 }
       },
@@ -244,10 +244,10 @@ test("save writes only ready IDs, preserves existing IDs, and reimport is idempo
   const input = { records: [record(-1), record(9, 3), record(19, 4)], toleranceSeconds: 5 }
   const result = await previewIdImport(input)
   assert.equal(result.success, true)
-  assert.deepEqual(result.preview.matches.map(match => match.status), ["ready", "conflict", "sent"])
+  assert.deepEqual(result.preview.matches.map(match => match.status), ["ready", "conflict", "ready"])
   const saved = await applyIdImport(input, result.preview.fingerprint)
-  assert.deepEqual(saved, { success: true, count: 1 })
-  assert.deepEqual(databaseRows.map(row => row.customId), ["LOT-2", "MANUAL", null])
+  assert.deepEqual(saved, { success: true, count: 2 })
+  assert.deepEqual(databaseRows.map(row => row.customId), ["LOT-2", "MANUAL", "LOT-4"])
   const repeated = await previewIdImport(input)
   assert.equal(repeated.preview.matches[0].status, "existing")
   assert.deepEqual(await applyIdImport(input, repeated.preview.fingerprint), { success: true, count: 0 })
